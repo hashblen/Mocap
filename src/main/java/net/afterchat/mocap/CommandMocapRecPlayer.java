@@ -37,7 +37,7 @@ public class CommandMocapRecPlayer extends CommandBase {
 
 	@Override
 	public boolean canCommandSenderUseCommand(ICommandSender icommandsender) {
-		if (!icommandsender.getCommandSenderName().equals("@")) {
+		if (!icommandsender.getName().equals("@")) {
 			return false;
 		}
 
@@ -58,7 +58,7 @@ public class CommandMocapRecPlayer extends CommandBase {
 	public void processCommand(ICommandSender icommandsender, String[] args) {
 		EntityPlayer player;
 
-		if (!icommandsender.getCommandSenderName().equals("@")) {
+		if (!icommandsender.getName().equals("@")) {
 			return;
 		}
 
@@ -76,7 +76,7 @@ public class CommandMocapRecPlayer extends CommandBase {
 		}
 
 		if (args[1].equals("@p")) {
-			args[1] = player.getCommandSenderName();
+			args[1] = player.getName();
 		}
 
 		/* Are we being recorded? */
@@ -85,7 +85,7 @@ public class CommandMocapRecPlayer extends CommandBase {
 		if (aRecorder != null) {
 			aRecorder.recordThread.capture = false;
 			Mocap.instance.broadcastMsg("Stopped recording "
-					+ player.getDisplayName() + " to file "
+					+ player.getName() + " to file " // getDisplayName() -> getName()
 					+ aRecorder.fileName + ".mocap");
 			Mocap.instance.recordThreads.remove(player);
 			return;
@@ -105,7 +105,7 @@ public class CommandMocapRecPlayer extends CommandBase {
 
 		if (aRecorder == null) {
 			Mocap.instance.broadcastMsg("Started recording "
-					+ player.getDisplayName() + " to file " + args[1]
+					+ player.getName() + " to file " + args[1] // getDisplayName() -> getName()
 					+ ".mocap");
 			MocapRecorder mcr = new MocapRecorder();
 			mcr.fileName = args[1].toLowerCase();

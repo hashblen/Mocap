@@ -88,7 +88,7 @@ class RecordThread implements Runnable {
 					capture = false;
 					Mocap.instance.recordThreads.remove(player);
 					Mocap.instance.broadcastMsg("Stopped recording "
-							+ player.getDisplayName() + ". RIP.");
+							+ player.getName() + ". RIP."); // getDisplayName() -> getName()
 				}
 			}
 

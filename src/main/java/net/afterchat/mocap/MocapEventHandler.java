@@ -27,14 +27,15 @@ import java.io.IOException;
 import java.util.List;
 
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.util.BlockPos;
 import net.minecraftforge.event.ServerChatEvent;
 import net.minecraftforge.event.entity.item.ItemTossEvent;
 import net.minecraftforge.event.entity.player.ArrowLooseEvent;
 import net.minecraftforge.event.world.BlockEvent.BreakEvent;
-import cpw.mods.fml.common.FMLCommonHandler;
-import cpw.mods.fml.common.eventhandler.SubscribeEvent;
-import cpw.mods.fml.common.gameevent.PlayerEvent.PlayerLoggedOutEvent;
-import cpw.mods.fml.relauncher.Side;
+import net.minecraftforge.fml.common.FMLCommonHandler;
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.fml.common.gameevent.PlayerEvent.PlayerLoggedOutEvent;
+import net.minecraftforge.fml.relauncher.Side;
 
 public class MocapEventHandler {
 	@SubscribeEvent
@@ -65,10 +66,11 @@ public class MocapEventHandler {
 			if (aList != null) {
 				MocapAction ma = new MocapAction(
 						MocapActionTypes.BREAKBLOCK);
-				
-				ma.xCoord = event.x;
-				ma.yCoord = event.y;
-				ma.zCoord = event.z;
+
+				BlockPos eventPos = event.pos; // new line
+				ma.xCoord = eventPos.getX(); //event.x -> eventPos.getX()
+				ma.yCoord = eventPos.getY(); //same
+				ma.zCoord = eventPos.getZ(); //same
 				aList.add(ma);
 			}
 		}

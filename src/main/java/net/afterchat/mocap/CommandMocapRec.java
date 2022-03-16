@@ -46,7 +46,7 @@ public class CommandMocapRec extends CommandBase {
 		return MinecraftServer
 				.getServer()
 				.getConfigurationManager()
-				.func_152596_g(
+				.canSendCommands(
 						(ep.getGameProfile()));
 	}
 
@@ -82,7 +82,7 @@ public class CommandMocapRec extends CommandBase {
 		if (aRecorder != null) {
 			aRecorder.recordThread.capture = false;
 			Mocap.instance.broadcastMsg("Stopped recording "
-					+ player.getDisplayName() + " to file "
+					+ player.getName() + " to file "// getDisplayName() -> getName()
 					+ aRecorder.fileName + ".mocap");
 			Mocap.instance.recordThreads.remove(player);
 			return;
@@ -102,7 +102,7 @@ public class CommandMocapRec extends CommandBase {
 
 		if (aRecorder == null) {
 			Mocap.instance.broadcastMsg("Started recording "
-					+ player.getDisplayName() + " to file " + args[0]
+					+ player.getName() + " to file " + args[0] // getDisplayName() -> getName()
 							+ ".mocap");
 			MocapRecorder mcr = new MocapRecorder();
 			mcr.fileName = args[0].toLowerCase();

@@ -43,8 +43,8 @@ import net.minecraft.util.StringUtils;
 
 import org.lwjgl.opengl.GL11;
 
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
+import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.relauncher.SideOnly;
 
 @SideOnly(Side.CLIENT)
 public class RenderEntityMocap extends RenderBiped {
@@ -58,24 +58,25 @@ public class RenderEntityMocap extends RenderBiped {
 			"textures/entity/steve.png");
 
 	public RenderEntityMocap(ModelBiped par1ModelBase, float par2) {
-		super(par1ModelBase, par2);
+		super(Minecraft.getMinecraft().getRenderManager(), par1ModelBase, par2); // super(...) -> super, Minecraft.getMinecraft().getRenderManager(), ...)
 	}
 
 	/**
 	 * Called from doRenderLiving in RenderBiped, overridden to prevent default
 	 * behaviour.
 	 */
+	/*
 	@Override
 	protected void func_82420_a(EntityLiving par1EntityLiving,
 			ItemStack par2ItemStack) {
 		return;
-	}
+	}*/ //ATTENTION commented out because doesn't override anything
 
 	/**
 	 * Called from RenderBiper in renderEquippedItems, used to rotate item when
 	 * eating / blocking.
 	 */
-	@Override
+	/*@Override
 	protected void func_82422_c() {
 		if (renderEat) {
 			GL11.glTranslatef(0.05F, 0.0F, -0.1F);
@@ -83,37 +84,41 @@ public class RenderEntityMocap extends RenderBiped {
 			GL11.glRotatef(-10.0F, 1.0F, 0.0F, 0.0F);
 			GL11.glRotatef(-60.0F, 0.0F, 0.0F, 1.0F);
 		}
-	}
+	}*/ //ATTENTION commented out because doesn't override anything
 
+	/* 	field_82423_g ??
+	 	field_82425_h ??
+	 	ATTENTION
+	 */
 	@Override
 	public void doRender(EntityLiving par1EntityLiving, double par2,
 			double par4, double par6, float par8, float par9) {
 		EntityMocap par1EntityMocap = (EntityMocap) par1EntityLiving;
 		ItemStack itemstack = par1EntityLiving.getHeldItem();
-		this.field_82423_g.heldItemRight = this.field_82425_h.heldItemRight = this.modelBipedMain.heldItemRight = itemstack != null ? 1
+		/*this.field_82423_g.heldItemRight = this.field_82425_h.heldItemRight =*/ this.modelBipedMain.heldItemRight = itemstack != null ? 1
 				: 0;
 		renderEat = false;
 
 		if (itemstack != null && par1EntityMocap.isEating()) {
 			EnumAction enumaction = itemstack.getItemUseAction();
 
-			if (enumaction == EnumAction.eat) {
-				this.field_82423_g.heldItemRight = this.field_82425_h.heldItemRight = this.modelBipedMain.heldItemRight = 6;
+			if (enumaction == EnumAction.EAT) { //eat -> EAT
+				/*this.field_82423_g.heldItemRight = this.field_82425_h.heldItemRight =*/ this.modelBipedMain.heldItemRight = 6;
 				renderEat = true;
 			}
 
-			if (enumaction == EnumAction.block) {
+			if (enumaction == EnumAction.BLOCK) { //block -> BLOCK
 				renderEat = true;
-				this.field_82423_g.heldItemRight = this.field_82425_h.heldItemRight = this.modelBipedMain.heldItemRight = 3;
+				/*this.field_82423_g.heldItemRight = this.field_82425_h.heldItemRight =*/ this.modelBipedMain.heldItemRight = 3;
 			}
 
-			else if (enumaction == EnumAction.bow) {
-				this.field_82423_g.aimedBow = this.field_82425_h.aimedBow = this.modelBipedMain.aimedBow = true;
+			else if (enumaction == EnumAction.BOW) { //bow -> BOW
+				/*this.field_82423_g.aimedBow = this.field_82425_h.aimedBow =*/ this.modelBipedMain.aimedBow = true;
 			}
 
 		}
 
-		this.field_82423_g.isSneak = this.field_82425_h.isSneak = this.modelBipedMain.isSneak = par1EntityLiving
+		/*this.field_82423_g.isSneak = this.field_82425_h.isSneak =*/ this.modelBipedMain.isSneak = par1EntityLiving
 				.isSneaking();
 		super.doRender(par1EntityLiving, par2, par4, par6, par8, par9);
 	}
@@ -165,7 +170,8 @@ public class RenderEntityMocap extends RenderBiped {
 	protected ResourceLocation getEntityTexture(Entity entity) {
 		EntityMocap fo = (EntityMocap) entity;
 		String skinName = fo.getSkinSource();
-		ResourceLocation resourcelocation = AbstractClientPlayer.locationStevePng;
+		ResourceLocation resourcelocation = new ResourceLocation("textures/entity/steve.png");
+		//AbstractClientPlayer.locationStevePng -> new ResourceLocation("textures/entity/steve.png")
 
 		if (skinName != null && skinName.length() > 0) {
 			resourcelocation = AbstractClientPlayer.getLocationSkin(skinName);

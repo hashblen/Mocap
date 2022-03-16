@@ -29,6 +29,8 @@ import java.util.List;
 import java.util.Random;
 
 import net.minecraft.block.Block;
+import net.minecraft.block.state.BlockState;
+import net.minecraft.block.state.IBlockState;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLiving;
@@ -42,12 +44,7 @@ import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemSword;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.util.AxisAlignedBB;
-import net.minecraft.util.ChatComponentTranslation;
-import net.minecraft.util.DamageSource;
-import net.minecraft.util.MathHelper;
-import net.minecraft.util.MovingObjectPosition;
-import net.minecraft.util.Vec3;
+import net.minecraft.util.*;
 import net.minecraft.world.World;
 
 public class EntityMocap extends EntityLiving {
@@ -98,7 +95,7 @@ public class EntityMocap extends EntityLiving {
 		switch (ma.type) {
 		case MocapActionTypes.CHAT: {
 			ChatComponentTranslation chatcomponenttranslation1 = new ChatComponentTranslation(
-					"chat.type.text", new Object[] { this.func_145748_c_(),
+					"chat.type.text", new Object[] { this.getDisplayName(),
 							ma.message });
 			MinecraftServer.getServer().getConfigurationManager()
 			.sendChatMsgImpl(chatcomponenttranslation1, false);
@@ -119,8 +116,8 @@ public class EntityMocap extends EntityLiving {
 				if (theI.getItem() instanceof ItemSword)
 				{
 					ItemSword itemsword = (ItemSword)theI.getItem();
-					dmg = itemsword.func_150931_i();
-					float f1 = EnchantmentHelper.getEnchantmentModifierLiving(this, mop);
+					dmg = itemsword.getDamageVsEntity();
+					float f1 = EnchantmentHelper.getEnchantmentModifierDamage(new ItemStack[]{theI}, DamageSource.causeMobDamage(mop));
 					dmg += f1;					
 				}
 				mop.attackEntityFrom(DamageSource.causeMobDamage(this), dmg);
@@ -171,33 +168,37 @@ public class EntityMocap extends EntityLiving {
 		}
 
 		case MocapActionTypes.BREAKBLOCK: {
-			Block aBlock = worldObj.getBlock(ma.xCoord, ma.yCoord, ma.zCoord);
+			BlockPos aBlockPos = new BlockPos(ma.xCoord, ma.yCoord, ma.zCoord);
+			Block aBlock = worldObj.getBlockState(aBlockPos).getBlock();
 			if (aBlock != Blocks.air)
 			{
-				int i1 = worldObj.getBlockMetadata(ma.xCoord, ma.yCoord, ma.zCoord);
+				//int i1 = worldObj.getBlockMetadata(ma.xCoord, ma.yCoord, ma.zCoord);
+				IBlockState aBlockState = aBlock.getDefaultState();
 
 				/* Play the visual effect associated with breaking this block + meta */
-				worldObj.playAuxSFX(2001, ma.xCoord, ma.yCoord, ma.zCoord, Block.getIdFromBlock(aBlock)
-						+ (i1 << 12));
+				worldObj.playAuxSFX(2001, aBlockPos, Block.getIdFromBlock(aBlock)
+						+ (aBlock.getMetaFromState(aBlockState) << 12));
 
-				worldObj.setBlockToAir(ma.xCoord, ma.yCoord, ma.zCoord);
-				aBlock.onBlockDestroyedByPlayer(worldObj, ma.xCoord, ma.yCoord, ma.zCoord, i1);                
-				aBlock.dropBlockAsItem(worldObj,  ma.xCoord, ma.yCoord, ma.zCoord, i1, 0);		
+				worldObj.setBlockToAir(aBlockPos);
+				aBlock.onBlockDestroyedByPlayer(worldObj, aBlockPos, aBlockState);
+				aBlock.dropBlockAsItem(worldObj, aBlockPos, aBlockState, 0);
 			}
 			break;
 		}
 
-		case MocapActionTypes.PLACEBLOCK: {
+		case MocapActionTypes.PLACEBLOCK: { //never called ??
 			ItemStack foo = ItemStack.loadItemStackFromNBT(ma.itemData);
 
 			if (foo.getItem() instanceof ItemBlock) {
 				ItemBlock f = (ItemBlock) foo.getItem();
 
-				f.placeBlockAt(foo, null, worldObj, ma.xCoord, ma.yCoord,
-						ma.zCoord, 0, 0, 0, 0, foo.getItemDamage());
+				f.placeBlockAt(foo, null, worldObj, new BlockPos(ma.xCoord, ma.yCoord,
+						ma.zCoord), EnumFacing.DOWN, 0, 0, 0, f.getBlock().getDefaultState());
+				//FAIRE ATTENTION AU f.getBlock().getDefaultState() !! jsp si c'est bien...
 
 				/* Play the sound placing this block makes! */
-				worldObj.playSoundEffect((double)((float)ma.xCoord + 0.5F), (double)((float)ma.yCoord + 0.5F), (double)((float)ma.zCoord + 0.5F), f.field_150939_a.stepSound.func_150496_b(), (f.field_150939_a.stepSound.getVolume() + 1.0F) / 2.0F, f.field_150939_a.stepSound.getPitch() * 0.8F);
+				worldObj.playSoundEffect((double)((float)ma.xCoord + 0.5F), (double)((float)ma.yCoord + 0.5F), (double)((float)ma.zCoord + 0.5F), f.block.stepSound.getPlaceSound(), (f.block.stepSound.getVolume() + 1.0F) / 2.0F, f.block.stepSound.getFrequency() * 0.8F);
+				//ATTENTION getPitch ~ getFrequency ???
 			}
 
 			break;
@@ -229,7 +230,7 @@ public class EntityMocap extends EntityLiving {
 			--this.newPosRotationIncrements;
 			this.setPosition(d0, d1, d2);
 			this.setRotation(this.rotationYaw, this.rotationPitch);
-		} else if (!this.isClientWorld()) {
+		} else if (this.isServerWorld()) { //!this.isClientWorld() -> this.isServerWorld()
 			this.motionX *= 0.98D;
 			this.motionY *= 0.98D;
 			this.motionZ *= 0.98D;
@@ -247,7 +248,7 @@ public class EntityMocap extends EntityLiving {
 			this.motionZ = 0.0D;
 		}
 
-		if (!this.isClientWorld()) {
+		if (this.isServerWorld()) { //!this.isClientWorld() -> this.isServerWorld()
 			this.rotationYawHead = this.rotationYaw;
 		}
 
@@ -291,11 +292,11 @@ public class EntityMocap extends EntityLiving {
 
 		EntityLivingBase target = null;
 
-		List lst = worldObj.getEntitiesWithinAABBExcludingEntity(this, AxisAlignedBB.getBoundingBox(posX-scanRadius, posY-scanRadius, posZ-scanRadius, posX+scanRadius, posY+scanRadius, posZ+scanRadius));
+		List lst = worldObj.getEntitiesWithinAABBExcludingEntity(this, AxisAlignedBB.fromBounds(posX-scanRadius, posY-scanRadius, posZ-scanRadius, posX+scanRadius, posY+scanRadius, posZ+scanRadius));
 		for (int i = 0; i < lst.size(); i ++)
 		{
 			Entity ent = (Entity) lst.get(i);
-			if (ent instanceof EntityLivingBase && ent!=null && ent.boundingBox != null)
+			if (ent instanceof EntityLivingBase && ent!=null && ent.getEntityBoundingBox() != null) // ent.boundingBox -> ent.getEntityBoundingBox()
 			{
 
 				float distance = getDistanceToEntity(ent) + 0.1f;
@@ -303,9 +304,10 @@ public class EntityMocap extends EntityLiving {
 				float pitch = rotationPitch;
 
 				Vec3 look = getLookVec();
-				Vec3 targetVec = Vec3.createVectorHelper(posX + look.xCoord * distance, (getEyeHeight()/2) + posY + look.yCoord * distance, posZ + look.zCoord * distance);
+				// Vec3.createVectorHelper -> new Vec3
+				Vec3 targetVec = new Vec3(posX + look.xCoord * distance, (getEyeHeight()/2) + posY + look.yCoord * distance, posZ + look.zCoord * distance);
 
-				if (ent.boundingBox.isVecInside(targetVec))
+				if (ent.getEntityBoundingBox().isVecInside(targetVec)) // ent.boundingBox -> ent.getEntityBoundingBox()
 				{
 
 					if (distance < targetDistance && distance > 0)
